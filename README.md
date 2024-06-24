@@ -128,8 +128,11 @@ Module(
 
 Thì đơn giản thôi
 đầu tiên có Assgin dùng để gắn , cho target là ast.Name (tức) biến được gắn là a, biến a được gắn với Hằng số có value là 5
+
 thứ hai là Expr để cho biểu thức , cho ast.Name là print và hằng số (constant) là 'hello'
+
 thứ ba vẫn là Expr để cho biểu thức , cho ast.Name là print và hằng số (constant) là a
+
 Nghe phân tích vậy chán đúng không?, giờ thì mình sẽ write một code bằng ast
 
 ```python
