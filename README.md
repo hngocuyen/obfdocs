@@ -2,10 +2,16 @@ Trước khi chúng ta vào make ast thì mình sẽ đưa ra một số khái n
 
 
 --- Lớp AST 
+
 --- Hàm cơ bản của ast
+
+
 `ast.parse` : Dùng để phân tích cấu trúc của source
+
 `ast.dump` : Dùng để biên dịch ast.parse dưới dạng ast
+
 `ast.unparse` : Dùng để đưa cấu trúc ast về source
+
 --- Lớp cho các biểu thức
 - `Expr`: Biểu thức chung.
 - `BoolOp`: Toán tử logic (and, or).
@@ -126,7 +132,7 @@ thứ hai là Expr để cho biểu thức , cho ast.Name là print và hằng s
 thứ ba vẫn là Expr để cho biểu thức , cho ast.Name là print và hằng số (constant) là a
 Nghe phân tích vậy chán đúng không?, giờ thì mình sẽ write một code bằng ast
 
-```
+```python
 code = ast.Expr(value=ast.Call(
     func=ast.Name('print'),
     args=[ast.Str(s='hello')],keywords=[]))
@@ -134,12 +140,12 @@ code = ast.Expr(value=ast.Call(
 print(ast.unparse(code))
 ```
 kết quả
-```
+```python
 print('hello')
 ```
 nhưng bây giờ muốn code biến hàm gì đó tùm lum thì sao
 thì đây
-```
+```python
 import ast
 
 code = ast.Assign(lineno=0,targets=[ast.Name(id='a', ctx=ast.Store())],
@@ -151,10 +157,84 @@ code1 = ast.Expr(value=ast.Call(func=ast.Name(id='print', ctx=ast.Load()),
                                      keywords=[]))
 module = ast.Module(lineno=0,body=[code, code1],type_ignores=[])
 print(ast.unparse(module))
-```
+```pytho
 cách đơn giản nhất là sử dụng ast.Module để ghép lại với nhau 
 kết quả
-```
+```python
 a = 'world'
 print('hello' + a)
 ```
+Vậy `lineno` là gì ở trên code này , thật ra thì mình cũng không biết , chỉ là thêm vào là nó không bị lỗi nữa thôi =))))))))
+
+Vậy là đủ sơ sơ qua phân tích cơ bản rồi , giờ chúng ta hãy làm cái phân tích tên biến , string , function , builtins 
+
+```python
+import ast
+
+
+code = """
+x = 42
+y = "hello world"
+z = [1, 2, 3]
+def hello():
+    return 5
+print(y)
+print("hello worldd")
+str(4)
+"""
+
+code = ast.parse(code)
+
+var = []
+tenham = []
+_builtins = []
+string = []
+_int = []
+for i in ast.walk(code):
+    if type(i) == ast.Assign: #Như chúng ta đã phân tích thì một ast.Name tức biến sẽ ở trong ast.Assgin, chúng ta kiểm tra trước rồi mới duyệt vào trong
+        for j in i.targets:
+            if type(j) == ast.Name: #Kiểm tra xem có phải là biến không
+                var.append(j.id) #id ở đây thực tế là ast.Name(id=" gì gì đó là tên biến ở đây")
+    if type(i) == ast.FunctionDef: #cái này thì dễ lấy chỉ việc lấy tên của nó ra thôi
+        tenham.append(i.name)
+    if type(i) == ast.Call:
+        if type(i.func) == ast.Name:
+            ten = i.func.id
+            if ten in vars(__builtins__):
+                _builtins.append(ten)
+    if type(i) == ast.Constant and type(i.value) == str: #Kiểm tra xem có phải là constant và giá trị có phải là str hay  không thì add vào
+        string.append(i.value)
+    if type(i) == ast.Constant and type(i.value) == int: #Kiểm tra xem có phải là constant và giá trị có phải là int hay  không thì add vào như bên trên thoi thay mỗi hàm
+        _int.append(i.value)
+
+for i in var:
+    print("Biến : ",i)
+for i in tenham:
+    print("Hàm : ",i)
+for i in string:
+    print("string : ",i)
+for i in _int:
+    print("int : ",i)
+for i in _builtins:
+    print("hàm builtins : ",i)
+```
+kết quả
+```python
+Biến :  x
+Biến :  y
+Biến :  z
+Hàm :  hello
+string :  hello world
+string :  hello worldd
+int :  42
+int :  1
+int :  2
+int :  3
+int :  5
+int :  4
+hàm builtins :  print
+hàm builtins :  print
+hàm builtins :  str
+```
+
+
